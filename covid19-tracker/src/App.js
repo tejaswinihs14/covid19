@@ -8,14 +8,28 @@ import {
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import InfoBox from "./InfoBox";
+import LineGraph from "./LineGraph";
+import Table from "./Table";
 import Map from "./Map";
+import { sortData } from "./util";
+import "leaflet/dist/leaflet.css";
 
 function App() {
   const [countries, SetCountries] = useState([]);
   const [country, setCountry] = useState("Worldwide");
+  const [countryInfo, setCountryInfo] = useState({});
+  const [tableData, setTableData] = useState([]);
 
   //STATE = how to write a variable in react
   // USEEFFCET = runs a piece of code based on a given condition
+
+  useEffect(() => {
+    fetch("https://api.caw.sh/v3/covid-19/all")
+      .then((response) => response.json())
+      .then((data) => {
+        setCountryInfo(data);
+      });
+  }, []);
 
   useEffect(() => {
     //async = send a request ,wait for it, do something with that info
@@ -28,15 +42,28 @@ function App() {
             name: country.country,
             value: country.countryInfo.iso2,
           }));
+          const sortedData = sortData(data);
+          setTableData(sortedData);
           SetCountries(countries);
         });
     };
     getCountriesData();
   }, []);
 
-  const onChangeCountry = (event) => {
+  const onChangeCountry = async (event) => {
     const countryCode = event.target.value;
-    setCountry(countryCode);
+
+    const url =
+      countryCode === "Worldwide"
+        ? "https://api.caw.sh/v3/covid-19/all"
+        : `https://api.caw.sh/v3/covid-19/countries/${countryCode}`;
+
+    await fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        setCountry(countryCode);
+        setCountryInfo(data);
+      });
   };
 
   return (
@@ -66,9 +93,21 @@ function App() {
         {/* info boxes */}
 
         <div className="app__stats">
-          <InfoBox title="CoronaVirus Cases" cases={124} total={2000} />
-          <InfoBox title="Recovered" cases={1134} total={2300} />
-          <InfoBox title="Deaths" cases={1444} total={2500} />
+          <InfoBox
+            title="CoronaVirus Cases"
+            cases={countryInfo.todayCases}
+            total={countryInfo.cases}
+          />
+          <InfoBox
+            title="Recovered"
+            cases={countryInfo.todayRecovered}
+            total={countryInfo.recovered}
+          />
+          <InfoBox
+            title="Deaths"
+            cases={countryInfo.todayDeaths}
+            total={countryInfo.deaths}
+          />
         </div>
         {/* map */}
         <Map />
@@ -78,9 +117,11 @@ function App() {
         <CardContent>
           {/* table */}
           <h3>Live cases by country</h3>
+          <Table countries={tableData} />
 
           {/* graph */}
           <h3>Worldwide new cases</h3>
+          <LineGraph />
         </CardContent>
       </Card>
     </div>
