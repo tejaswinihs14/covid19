@@ -2,6 +2,21 @@ import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import numeral from "numeral";
 
+const casesTypeColors = {
+  cases: {
+    backgroundColor: "rgba(204, 16, 52, 0.5)",
+    borderColor: "#CC1034",
+  },
+  recovered: {
+    backgroundColor: "rgba(125, 215, 29, 0.5)",
+    borderColor: "#7dd71d",
+  },
+  deaths: {
+    backgroundColor: "rgba(55, 71, 79, 0.5)",
+    borderColor: "#37474F",
+  },
+};
+
 const options = {
   legend: {
     display: false,
@@ -50,11 +65,12 @@ const options = {
 const buildChartData = (data, casesType) => {
   let chartData = [];
   let lastDataPoint;
-  for (let date in data.cases) {
+
+  for (let date in data[casesType]) {
     if (lastDataPoint) {
-      let newDataPoint = {
+      const newDataPoint = {
         x: date,
-        y: data[casesType][date] - lastDataPoint,
+        y: Math.max(0, data[casesType][date] - lastDataPoint),
       };
       chartData.push(newDataPoint);
     }
@@ -68,10 +84,8 @@ function LineGraph({ casesType = "cases", ...props }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      await fetch("https://api.caw.sh/v3/covid-19/historical/all?lastdays=120")
-        .then((response) => {
-          return response.json();
-        })
+      await fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=120")
+        .then((response) => response.json())
         .then((data) => {
           let chartData = buildChartData(data, casesType);
           setData(chartData);
@@ -88,13 +102,15 @@ function LineGraph({ casesType = "cases", ...props }) {
           data={{
             datasets: [
               {
-                backgroundColor: "rgba(204, 16, 52, 0.5)",
-                borderColor: "#CC1034",
+                backgroundColor: casesTypeColors[casesType].backgroundColor,
+                borderColor: casesTypeColors[casesType].borderColor,
                 data: data,
+                fill: true,
               },
             ],
           }}
           options={options}
+          height={300}
         />
       )}
     </div>

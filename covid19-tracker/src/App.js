@@ -27,7 +27,7 @@ function App() {
   // USEEFFCET = runs a piece of code based on a given condition
 
   useEffect(() => {
-    fetch("https://api.caw.sh/v3/covid-19/all")
+    fetch("https://disease.sh/v3/covid-19/all")
       .then((response) => response.json())
       .then((data) => {
         setCountryInfo(data);
@@ -38,7 +38,7 @@ function App() {
     //async = send a request ,wait for it, do something with that info
     // the code runs only once when component is loaded or changed
     const getCountriesData = async () => {
-      await fetch("https://api.caw.sh/v3/covid-19/countries")
+      await fetch("https://disease.sh/v3/covid-19/countries")
         .then((response) => response.json())
         .then((data) => {
           const countries = data.map((country) => ({
@@ -59,8 +59,8 @@ function App() {
 
     const url =
       countryCode === "Worldwide"
-        ? "https://api.caw.sh/v3/covid-19/all"
-        : `https://api.caw.sh/v3/covid-19/countries/${countryCode}`;
+        ? "https://disease.sh/v3/covid-19/all"
+        : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
 
     await fetch(url)
       .then((response) => response.json())
